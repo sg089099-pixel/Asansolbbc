@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv='refresh' content='90'/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Weather Dashboard - District Science Centre, Purulia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="weather-grid" id="main-dashboard">
+        <div class="header">
+            
+<img src='https://ncsm.gov.in/wp-content/uploads/2013/12/NCSM-Logo.png' alt='NCSM Logo'>
+            <span>Banwarilal Bhalotia College, Asansol</span>
+            
+            <img src='https://media.licdn.com/dms/image/v2/D560BAQFuPOC58s6fbg/company-logo_200_200/company-logo_200_200/0/1705223700094?e=2147483647&v=beta&t=0ugHadkjZiyoh_Hm2I1VACdQ8GpPjWgKbcbFSh0W_Qg'>
+        </div>
+        
+        <div class="container">
+            <h1>Live Weather Dashboard</h1>
+            <div id="dateTime"></div>
+            
+            <div class="dashboard-grid">
+                <!-- Temperature Card -->
+<div class="card temp-card">
+    <!-- Chart Overlay -->
+    <div class="temperature-chart-container">
+        <canvas id="temperatureChart"></canvas>
+    </div>
+    
+    <!-- Temperature Content -->
+    <div class="temp-card-content">
+        <div class="current-temp">
+            <div class="thermometer">
+                <div class="mercury" id="thermometer-mercury"></div>
+            </div>
+            <div>
+                <span class="temp-value" id="current-temp">--°C</span>
+                <div class="temp-range">
+                    <span>0°C</span>
+                    <span>50°C</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="high-low">
+            <div class="high-low-item">
+                <i class="fas fa-temperature-high high-value"></i>
+                <div>
+                    <div class="metric-label">Today's High</div>
+                    <div class="metric-value" id="high-temp">--°C</div>
+                </div>
+            </div>
+            <div class="high-low-item">
+                <i class="fas fa-temperature-low low-value"></i>
+                <div>
+                    <div class="metric-label">Today's Low</div>
+                    <div class="metric-value" id="low-temp">--°C</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                
+                <!-- Sun/Moon Card -->
+                <div class="card sun-moon-card">
+                    <div class="card-header">
+                        <i class="fas fa-sun"></i>
+                        <h3>Sun & Moon</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="sun-container">
+                            <div class="sun-path"></div>
+                            <div class="sun" id="sun"></div>
+                        </div>
+                        <div class="sun-times">
+                            <div class="sun-time">
+                                <i class="fas fa-sunrise"></i>
+                                <span id="sunrise-time">--:-- --</span>
+                            </div>
+                            <div class="sun-time">
+                                <i class="fas fa-sunset"></i>
+                                <span id="sunset-time">--:-- --</span>
+                            </div>
+                        </div>
+                        
+                        <div class="moon-phase">
+                            <div class="moon-icon" id="moon-phase-icon">🌑</div>
+                            <div id="moon-phase-details">Loading...</div>
+                            <div id="moon-illumination">0% illuminated</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wind Card -->
+                <div class="card wind-card">
+                    <div class="card-header">
+                        <i class="fas fa-wind"></i>
+                        <h3>Wind Conditions</h3>
+                        <div class="wind-gust">
+                            <i class="fas fa-wind"></i> Gust: <span id="wind-gust">-- km/h</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="compass-container">
+                            <div class="compass">
+                                <div class="compass-markers">
+                                    <div class="compass-marker">N</div>
+                                    <div class="compass-marker">NE</div>
+                                    <div class="compass-marker">E</div>
+                                    <div class="compass-marker">SE</div>
+                                    <div class="compass-marker">S</div>
+                                    <div class="compass-marker">SW</div>
+                                    <div class="compass-marker">W</div>
+                                    <div class="compass-marker">NW</div>
+                                </div>
+                                <div class="compass-rose"></div>
+                                <div class="needle" id="needle"></div>
+                                <div class="center-dot"></div>
+                                <div class="wind-speed-value" id="compass-wind-speed">--</div>
+                            </div>
+                        </div>
+                        
+                        <div class="wind-info">
+                            <div class="wind-stat">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span id="wind-speed">-- km/h</span>
+                            </div>
+                            <div class="wind-stat">
+                                <i class="fas fa-compass"></i>
+                                <span id="wind-direction">-- --°</span>
+                            </div>
+                            <div class="wind-stat">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="wind-angle">--°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Weather Metrics -->
+            <div class="weather-metrics">
+                <div class="metric-card">
+                    <i class="fas fa-tint metric-icon"></i>
+                    <span class="metric-value" id="humidity">--%</span>
+                    <div class="metric-label">Humidity</div>
+                </div>
+                
+                <div class="metric-card">
+                    <i class="fas fa-tachometer-alt metric-icon"></i>
+                    <span class="metric-value" id="pressure">-- hPa</span>
+                    <div class="metric-label">Pressure</div>
+                </div>
+                
+                <div class="metric-card">
+                    <i class="fas fa-sun metric-icon"></i>
+                    <span class="metric-value" id="uv-index">--</span>
+                    <div class="metric-label">UV Index</div>
+                </div>
+                
+                <div class="metric-card">
+                    <i class="fas fa-smog metric-icon"></i>
+                    <span class="metric-value" id="aqi">--</span>
+                    <div class="metric-label">AQI</div>
+                </div>
+                
+                <div class="metric-card">
+                    <i class="fas fa-industry metric-icon"></i>
+                    <span class="metric-value" id="co-level">-- ppm</span>
+                    <div class="metric-label">CO Level</div>
+                </div>
+                
+                <div class="metric-card rain-card" id="rain-card">
+                    <div class="weather-icon-container">
+                        <i class="fas fa-cloud-rain metric-icon"></i>
+                        <div class="rain-animation" id="current-rain-animation"></div>
+                    </div>
+                    <span class="metric-value" id="current-rainfall">-- mm</span>
+                    <div class="metric-label" id="rain-intensity-label">Loading...</div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="facilities-marquee">
+            <marquee behavior="scroll" direction="left" scrollamount="8">
+                <i class="fas fa-atom"></i> Children's Gallery • 
+                <i class="fas fa-dna"></i> Life Science Gallery • 
+                <i class="fas fa-flask"></i> Popular Science Gallery • 
+                <i class="fas fa-landmark"></i> Wealth of Purulia Gallery • 
+                <i class="fas fa-seedling"></i> Science Park • 
+                <i class="fas fa-dinosaur"></i> Dinosaur Park • 
+                <i class="fas fa-lightbulb"></i> Innovation Hub • 
+                <i class="fas fa-star"></i> Taramandal Show • 
+                <i class="fas fa-film"></i> 3D Show • 
+                <i class="fas fa-vial"></i> Science Show
+            </marquee>
+        </div>
+        
+        <div class="footer">
+            <div style="display: flex; align-items: center; gap: 0px; margin-bottom: 0px;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://dscinnovationhub.github.io/dscinnovationhub/#" 
+                     alt="DSC Innovation Hub QR Code"
+                     style="width: 90px; height: 90px;">
+                <span style="font-size: 14px; color: white;">
+                    **For more information about Innovation Hub Purulia, scan it**
+                </span>
+            </div>
+            <div text-align: center;>
+                Developed & Powered by Innovation Hub • District Science Centre, Purulia • Sumanta Ghosh, Amit Biswas, Abhipsa Paul, Sangita Pal
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
