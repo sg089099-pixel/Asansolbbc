@@ -1,5 +1,5 @@
 // Google Apps Script Endpoint
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjFj6K37vQDpTVmw2g8fn6j3daUVL064Fi3xbssNgDE-i-bZTGSaterUoQWEVBvy_ZPw/exec'; // Replace with your deployed web app URL
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjFj6K37vQDpTVmw2g8fn6j3daUVL064Fi3xbssNgDE-i-bZTGSaterUoQWEVBvy_ZPw/exec';
 
 // DOM Elements
 const dateTimeEl = document.getElementById('dateTime');
@@ -11,6 +11,8 @@ const pressureEl = document.getElementById('pressure');
 const uvIndexEl = document.getElementById('uv-index');
 const aqiEl = document.getElementById('aqi');
 const coLevelEl = document.getElementById('co-level');
+const pm25El = document.getElementById('pm25');
+const pm10El = document.getElementById('pm10');
 const windSpeedEl = document.getElementById('wind-speed');
 const windDirectionEl = document.getElementById('wind-direction');
 const windAngleEl = document.getElementById('wind-angle');
@@ -28,10 +30,10 @@ let temperatureChart;
 // Date and Time Display
 function displayDateTime() {
     const now = new Date();
-    const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
+    const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
@@ -41,16 +43,57 @@ function displayDateTime() {
     dateTimeEl.textContent = now.toLocaleDateString('en-IN', options);
 }
 
+// Calculate AQI based on PM2.5, PM10 and CO levels
+function calculateAQI(pm25, pm10, co) {
+    // AQI calculation based on Indian AQI standards
+    // Breakpoints for PM2.5 (µg/m³)
+    const pm25Breakpoints = [0, 30, 60, 90, 120, 250];
+    const pm25AQI = [0, 50, 100, 200, 300, 400, 500];
+    
+    // Breakpoints for PM10 (µg/m³)
+    const pm10Breakpoints = [0, 50, 100, 250, 350, 430];
+    const pm10AQI = [0, 50, 100, 200, 300, 400, 500];
+    
+    // Breakpoints for CO (ppm)
+    const coBreakpoints = [0, 1, 2, 10, 17, 34];
+    const coAQI = [0, 50, 100, 200, 300, 400, 500];
+    
+    // Calculate sub-indices
+    const pm25SubIndex = calculateSubIndex(pm25, pm25Breakpoints, pm25AQI);
+    const pm10SubIndex = calculateSubIndex(pm10, pm10Breakpoints, pm10AQI);
+    const coSubIndex = calculateSubIndex(co, coBreakpoints, coAQI);
+    
+    // AQI is the maximum of the sub-indices
+    return Math.max(pm25SubIndex, pm10SubIndex, coSubIndex);
+}
+
+function calculateSubIndex(value, breakpoints, aqiValues) {
+    if (value <= breakpoints[0]) return 0;
+    
+    for (let i = 0; i < breakpoints.length; i++) {
+        if (value <= breakpoints[i]) {
+            const bpLow = breakpoints[i-1];
+            const bpHigh = breakpoints[i];
+            const aqiLow = aqiValues[i-1];
+            const aqiHigh = aqiValues[i];
+            
+            return Math.round(((aqiHigh - aqiLow) / (bpHigh - bpLow)) * (value - bpLow) + aqiLow);
+        }
+    }
+    
+    return aqiValues[aqiValues.length - 1]; // Return max AQI if value exceeds highest breakpoint
+}
+
 // Fetch Data from Google Apps Script
 async function fetchWeatherData() {
     try {
         const response = await fetch(APP_SCRIPT_URL);
         const result = await response.json();
-        
+       
         if (result.status === 'success' && result.data.length > 0) {
             // Assuming first row is current data
             const currentData = result.data[0];
-            
+           
             // Map data to variables (adjust indices based on your sheet structure)
             const weatherData = {
                 temperature: parseFloat(currentData[0]) || 0,       // Column K
@@ -59,19 +102,23 @@ async function fetchWeatherData() {
                 lowTemp: parseFloat(currentData[3]) || 0,           // Column N
                 pressure: parseFloat(currentData[4]) || 0,          // Column O
                 uvIndex: parseFloat(currentData[5]) || 0,           // Column P
-                aqi: parseFloat(currentData[6]) || 0,               // Column Q
-                coLevel: parseFloat(currentData[7]) || 0,           // Column R
-                windSpeed: parseFloat(currentData[8]) || 0,         // Column S
-                windDirection: currentData[9] || 'N',               // Column T
-                rainfall: parseFloat(currentData[10]) || 0          // Additional column if available
+                pm25: parseFloat(currentData[6]) || 0,              // Column Q (PM2.5)
+                pm10: parseFloat(currentData[7]) || 0,              // Column R (PM10)
+                coLevel: parseFloat(currentData[8]) || 0,           // Column S (CO)
+                windSpeed: parseFloat(currentData[9]) || 0,         // Column T
+                windDirection: currentData[10] || 'N',              // Column U
+                rainfall: parseFloat(currentData[11]) || 0          // Column V
             };
             
+            // Calculate AQI
+            weatherData.aqi = calculateAQI(weatherData.pm25, weatherData.pm10, weatherData.coLevel);
+           
             updateWeatherDisplay(weatherData);
-            
+           
             // Update chart with last 24 data points
             const chartData = result.data.slice(0, 24).map(row => parseFloat(row[0]) || 0);
             updateTemperatureChart(chartData);
-            
+           
             // Update last updated time
             const lastUpdated = new Date(result.lastUpdated);
             console.log('Data last updated:', lastUpdated.toLocaleString());
@@ -91,27 +138,29 @@ function updateWeatherDisplay(data) {
     currentTempEl.textContent = `${data.temperature.toFixed(1)}°C`;
     highTempEl.textContent = `${data.highTemp.toFixed(1)}°C`;
     lowTempEl.textContent = `${data.lowTemp.toFixed(1)}°C`;
-    
+   
     // Update thermometer
     updateThermometer(data.temperature);
-    
+   
     // Other metrics
     humidityEl.textContent = `${data.humidity.toFixed(0)}%`;
     pressureEl.textContent = `${data.pressure.toFixed(0)} hPa`;
     uvIndexEl.textContent = data.uvIndex.toFixed(0);
     aqiEl.textContent = data.aqi.toFixed(0);
     coLevelEl.textContent = `${data.coLevel.toFixed(1)} ppm`;
-    
+    pm25El.textContent = `${data.pm25.toFixed(1)} µg/m³`;
+    pm10El.textContent = `${data.pm10.toFixed(1)} µg/m³`;
+   
     // Wind data
     const windSpeedKmh = (data.windSpeed * 3.6).toFixed(1); // Convert m/s to km/h
     windSpeedEl.textContent = `${windSpeedKmh} km/h`;
     compassWindSpeedEl.textContent = windSpeedKmh;
-    
+   
     // Wind direction (convert to degrees if needed)
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
                        'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     let windDegrees = 0;
-    
+   
     // If windDirection is a compass point (N, NE, etc.)
     if (isNaN(data.windDirection)) {
         const index = directions.indexOf(data.windDirection.toUpperCase());
@@ -119,16 +168,40 @@ function updateWeatherDisplay(data) {
     } else {
         windDegrees = parseFloat(data.windDirection);
     }
-    
+   
     const index = Math.round(windDegrees / 22.5) % 16;
     const compassDir = directions[index];
-    
+   
     windDirectionEl.textContent = `${compassDir} ${Math.round(windDegrees)}°`;
     windAngleEl.textContent = `${Math.round(windDegrees)}°`;
     needleEl.style.transform = `translate(-50%, -100%) rotate(${windDegrees}deg)`;
-    
+   
     // Rainfall
-    updateRainDisplay(data.rainfall);
+                    //updateRainDisplay(data.rainfall);
+    
+    // Update AQI color based on value
+    updateAQIColor(data.aqi);
+}
+
+// Update AQI display color based on value
+function updateAQIColor(aqi) {
+    const aqiValue = parseFloat(aqi);
+    let color = '#4caf50'; // Good (Green)
+    
+    if (aqiValue > 50 && aqiValue <= 100) {
+        color = '#ffeb3b'; // Satisfactory (Yellow)
+    } else if (aqiValue > 100 && aqiValue <= 200) {
+        color = '#ff9800'; // Moderate (Orange)
+    } else if (aqiValue > 200 && aqiValue <= 300) {
+        color = '#f44336'; // Poor (Red)
+    } else if (aqiValue > 300 && aqiValue <= 400) {
+        color = '#9c27b0'; // Very Poor (Purple)
+    } else if (aqiValue > 400) {
+        color = '#795548'; // Severe (Brown)
+    }
+    
+    aqiEl.style.color = color;
+    aqiEl.style.textShadow = `0 0 8px ${color}`;
 }
 
 // Update thermometer visualization
