@@ -691,3 +691,29 @@ h1::after {
 ::-webkit-scrollbar-thumb:hover {
     background: #006494;
 }
+
+/* Add this new style for the dust icon */
+.fa-dust:before {
+    content: "\f763";
+}
+
+/* Rest of your existing CSS remains the same */
+:root {
+    --primary: #005a87;
+    --secondary: #0082b5;
+    --accent: #ffcc00;
+    --dark: #0a1929;
+    --bg-dark: #0a1929;
+    --light: #f0f8ff;
+    --success: #4caf50;
+    --warning: #ff9800;
+    --danger: #f44336;
+    --info: #2196F3;
+    --card-bg: rgba(0, 90, 135, 0.25);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --text-primary: rgba(255, 255, 255, 0.9);
+    --text-secondary: rgba(255, 255, 255, 0.7);
+}
+
+/* Rest of your existing CSS remains unchanged */
+/* ... all your existing CSS rules ... */
