@@ -1,5 +1,5 @@
 // Google Apps Script Endpoint
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsTKmO0_X5ZXHZfT7yzQUoZDcxrtMexEi6rFKZkC0pwh3pIXmyRaByVWAM1grBzkA/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYX2CKpZ9BHaWXMtpfw6fTVINr4L1oTG7x4m9Uk9YqEG2Zy0HyhVfgcNPS5-r3CT5keg/exec';
 
 // DOM Elements
 const dateTimeEl = document.getElementById('dateTime');
